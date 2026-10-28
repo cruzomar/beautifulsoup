@@ -33,9 +33,9 @@ with open(fileName, "r", encoding="utf-8") as file:
     result = file.read()
 
 # Replace <b> tags with <blockquote> during parsing
-bToBlockqoute = SoupReplacer("b", "blockquote")
+bToBlockquote = SoupReplacer("b", "blockquote")
 
-soup = BeautifulSoup(result, parser, replacer=bToBlockqoute)
+soup = BeautifulSoup(result, parser, replacer=bToBlockquote)
 
 # Create the outputs folder inside apps/m2
 outputDir = Path(__file__).resolve().parent / "outputs"
