@@ -122,3 +122,5 @@ dmypy.json
 # Emacs files
 *~
 \#*\#
+
+apps/m2/outputs
