@@ -1032,6 +1032,9 @@ class BeautifulSoup(Tag):
         ):
             return None
 
+        # Save the original tag name before any transformations
+        original_name = name
+
         # Replace the original tag before creating the Tag object
         if self.replacer is not None and name == self.replacer.og_tag:
             name = self.replacer.alt_tag
@@ -1055,6 +1058,25 @@ class BeautifulSoup(Tag):
         )
         if tag is None:
             return tag
+
+        # Remember the original name so closing tags can be matched correctly
+        tag._original_name = original_name
+
+        # Apply the transformer functions during parsing
+        if self.replacer is not None:
+
+            # Transform the tag's name if a name transformer was provided
+            if self.replacer.name_xformer is not None:
+                tag.name = self.replacer.name_xformer(tag)
+
+            # Replace the tag's attributes if an attribute transformer was provided
+            if self.replacer.attrs_xformer is not None:
+                tag.attrs = self.replacer.attrs_xformer(tag)
+
+            # Allow a custom function to modify the tag directly
+            if self.replacer.xformer is not None:
+                self.replacer.xformer(tag)
+
         if self._most_recent_element is not None:
             self._most_recent_element.next_element = tag
         self._most_recent_element = tag
@@ -1069,13 +1091,20 @@ class BeautifulSoup(Tag):
 
         :meta private:
         """
-        # print("End tag: " + name)
         self.endData()
 
-        # Match the closing tag with its replacement
-        if self.replacer is not None and name == self.replacer.og_tag:
-            name = self.replacer.alt_tag
+        if self.replacer is not None:
+            # Find the most recent open tag matching the original closing name
+            for tag in reversed(self.tagStack[1:]):
+                if (getattr(tag, "_original_name", tag.name) == name and tag.prefix == nsprefix):
+                    # Close any nested tags above the matching tag
+                    while self.tagStack[-1] is not tag:
+                        self.popTag()
 
+                    # Close the matching tag itself
+                    self.popTag()
+                    return
+            return 
         self._popToTag(name, nsprefix)
 
     def handle_data(self, data: str) -> None:
