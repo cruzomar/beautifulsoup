@@ -209,6 +209,13 @@ class BeautifulSoup(Tag):
     #: could not be represented in Unicode.
     contains_replacement_characters: bool
 
+    def __iter__(self) -> Iterator[PageElement]:
+        """Iterate over all nodes in the BeautifulSoup tree."""
+
+        # Reuse the existing descendants generator to visit every node
+        # without storing all nodes in a separate list
+        return self.descendants
+
     def __init__(
         self,
         markup: _IncomingMarkup = "",
